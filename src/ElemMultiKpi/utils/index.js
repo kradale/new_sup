@@ -100,11 +100,12 @@ export const ParamStyleTypes = {
     }
 };
 
-export const PARAM_STYLE_FACTORY = ({ typeCondition = null, type = null, value = '', style = [] } = {}) => ({
+export const PARAM_STYLE_FACTORY = ({ typeCondition = null, type = null, value = '', style = [], color = '' } = {}) => ({
     typeCondition,
     type,
     value,
-    style
+    style,
+    color
 });
 
 export const indicatorConditionRuleFactory = ({
