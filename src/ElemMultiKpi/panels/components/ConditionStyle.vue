@@ -51,6 +51,10 @@
                 </template>
             </ui-has-two-columns>
 
+            <ui-input-cp class="p" v-model="styleItem.color" @input="changed">
+                Цвет
+            </ui-input-cp>
+
             <ui-input-tags
                 class="p"
                 :value="resolveStyleValue(styleItem.style)"

@@ -253,7 +253,8 @@ export default {
                     if (handler && handler(Number(metricValue), Number(itemValue))) {
                         obj = {
                             ...obj,
-                            ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';'))
+                            ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';')),
+                            ...(item.color ? { color: item.color } : {})
                         };
                     }
                 });
@@ -280,7 +281,8 @@ export default {
                     if (handler && handler(Number(metricValue), Number(itemValue))) {
                         obj = {
                             ...obj,
-                            ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';'))
+                            ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';')),
+                            ...(item.color ? { color: item.color } : {})
                         };
                     }
                 });
@@ -306,7 +308,8 @@ export default {
                 if (handler && handler(Number(metricValue), Number(itemValue))) {
                     return {
                         ...acc,
-                        ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';'))
+                        ...this.cssStrToObj(typeof item.style === 'string' ? item.style : item.style.join(';')),
+                        ...(item.color ? { color: item.color } : {})
                     };
                 }
                 return acc;
