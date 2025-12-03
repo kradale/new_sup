@@ -1,0 +1,61 @@
+// LIBS
+const { resolve, join } = require('path');
+const { remote: buildConfigs } = require('@goodt/webpack');
+const { isProd } = require('@goodt/webpack/common/utils');
+
+// CONFIGS
+const { OUTPUT_DIR, PROJECT_DIR, PROCESS_DIR, APP_BUILD_ENTRY_PATH } = require('./.config/consts');
+
+const packageJson = require(join(PROJECT_DIR, 'package.json'));
+const packageLockJson = require(join(PROCESS_DIR, 'package-lock.json'));
+
+const { configureWebpack, chainWebpack } = buildConfigs({
+    // build-time params
+    isEsm: true,
+    isProd: true,
+    useShared: true,
+    useExternals: false,
+    
+    baseDir: PROCESS_DIR,
+    outputDir: OUTPUT_DIR,
+    buildEntryFilePath: resolve(PROJECT_DIR, APP_BUILD_ENTRY_PATH),
+    entry: packageJson.name,
+    
+    packageJson,
+    packageLockJson,
+    
+    remoteConfig: {
+        widgetName: 'resolver',
+        entryFile: `./remoteEntry.js`,
+        exposes: {
+            './resolver': APP_BUILD_ENTRY_PATH
+        }
+    }
+});
+
+const configureWebpackLocal = () => ({
+    ...configureWebpack(),
+    devServer: {
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+            'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
+        },
+        allowedHosts: 'all',
+        hot: 'only',
+        // Используем HTTP вместо HTTPS для локальной разработки
+        // server: {
+        //     type: 'https'
+        // },
+        client: {
+            webSocketURL: {
+                hostname: 'localhost'
+            }
+        }
+    }
+});
+
+module.exports = {
+    configureWebpack: configureWebpackLocal,
+    chainWebpack
+};
