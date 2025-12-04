@@ -6,14 +6,6 @@ export const Events = Object.freeze({
     IS_EMPTY_FILTER: 'isEmptyFilter'
 });
 
-/**
- * @enum {string}
- * @type {Readonly<Record<string, string>>}
- */
-export const Vars = Object.freeze({
-    CUSTOM_VAR: 'customVar'
-});
-
 export const descriptor = () => ({
     props: {
         activeButtonStyle: {
@@ -51,40 +43,6 @@ export const descriptor = () => ({
         renderHover: {
             type: Boolean,
             default: false
-        },
-        buttonHoverColor: {
-            type: String,
-            default: ''
-        },
-        buttonHoverTextColor: {
-            type: String,
-            default: ''
-        },
-        buttonHoverStyle: {
-            type: String,
-            default: ''
-        },
-        customVar: {
-            type: String,
-            default: 'customVar'
-        },
-        variablesList: {
-            type: Array,
-            default() {
-                return [{ name: 'customVar' }];
-            }
-        },
-        resetButton: {
-            type: Object,
-            default() {
-                return {
-                    enable: false,
-                    styleAsInactive: true,
-                    text: 'Сбросить все',
-                    backgroundColor: '',
-                    textColor: ''
-                };
-            }
         },
         renderMetric: {
             type: Boolean,
@@ -134,20 +92,7 @@ export const descriptor = () => ({
             type: Array,
             default() {
                 return [];
-            },
-            factory: ({
-                title = '',
-                eventName = '',
-                url = '',
-                icon = '',
-                variableValue = ''
-            } = {}) => ({
-                title,
-                eventName,
-                url,
-                icon,
-                variableValue
-            })
+            }
         },
         renderImg: {
             type: Boolean,
@@ -264,7 +209,7 @@ export const descriptor = () => ({
     events: {
         [Events.IS_EMPTY_FILTER]: ['trigger']
     },
-    vars: Object.values(Vars).reduce((acc, varName) => ({ ...acc, [varName]: { description: varName } }), {})
+    vars: {}
 });
 
 export const meta = {

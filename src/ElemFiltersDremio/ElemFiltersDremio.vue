@@ -5,18 +5,13 @@
                 v-for="(buttonItem, i) in buttons"
                 :key="i"
                 class="image__btn"
-                :class="[
+                :class="{
                     supClasses,
-                    buttonHoverClasses,
-                    {
-                        'button-hover': props.renderHover,
-                        'break-words': props.breakWords
-                    }
-                ]"
-                :style="getButtonStyle(buttonItem.button, i)"
-                @click="onClickImgOrElseBtn({ i, ...buttonItem })"
-                @mouseenter="onButtonMouseEnter(i)"
-                @mouseleave="onButtonMouseLeave">
+                    'button-hover': props.renderHover,
+                    'break-words': props.breakWords
+                }"
+                :style="isActiveButton(buttonItem.button, i) ? activeStyle : disabledStyle"
+                @click="onClickImgOrElseBtn({ i, ...buttonItem })">
                 <div
                     class="image__btn-content"
                     :class="{
@@ -45,7 +40,7 @@
             </div>
         </div>
         <div class="is-switch" v-else-if="props.isSwitch && props.switchMetric" :key="switchKey">
-            <div v-for="(buttonItem, i) in buttons" :key="i" class="is-switch__btn" :class="[supClasses, buttonHoverClasses]">
+            <div v-for="(buttonItem, i) in buttons" :key="i" class="is-switch__btn" :class="supClasses">
                 <div v-if="props.isSwitchRounded">
                     <ui-switch
                         v-model="switchBtn[i]"
@@ -61,11 +56,9 @@
                 v-for="(buttonItem, i) in buttons"
                 :key="i"
                 class="else__btn"
-                :class="[supClasses, buttonHoverClasses, { 'break-words': props.breakWords }]"
-                :style="getButtonStyle(buttonItem.button, i)"
-                @click="onClickImgOrElseBtn({ i, metric: null, ...buttonItem })"
-                @mouseenter="onButtonMouseEnter(i)"
-                @mouseleave="onButtonMouseLeave">
+                :class="{ supClasses, 'break-words': props.breakWords }"
+                :style="isActiveButton(buttonItem.button, i) ? activeStyle : disabledStyle"
+                @click="onClickImgOrElseBtn({ i, metric: null, ...buttonItem })">
                 <w-button-text-wrapper :metrics="buttonItem.additionalMetrics">
                     {{ buttonItem.button }}
                 </w-button-text-wrapper>
@@ -74,14 +67,6 @@
                     class="mdi icon"
                     :class="buttonItem.icon"
                     :style="getIconStyle(buttonItem.button, i)"></div>
-            </div>
-            <div
-                v-if="props.resetButton.enable"
-                class="else__btn reset-btn"
-                :class="[supClasses, buttonHoverClasses]"
-                :style="resetButtonStyle"
-                @click="onResetButtonClick">
-                {{ props.resetButton.text || 'Сбросить все' }}
             </div>
         </div>
     </w-elem>
@@ -94,7 +79,7 @@ import { useElemDatasetMixin, ElemDatasetMixinTypes } from '@goodt-common/data';
 import { isEmpty, pick, omit } from 'lodash';
 import { UiSwitch } from '@goodt-wcore/panel-ui';
 import { useNavigate, useRouteQueryManager } from '@goodt-wcore/utils';
-import { Events, meta, Vars } from './descriptor';
+import { Events, meta } from './descriptor';
 import { MarginClassesOptions } from './panels/config';
 import WButtonTextWrapper from './components/ButtonTextWrapper.vue';
 
@@ -130,7 +115,6 @@ export default {
             switchKey: 0,
             subState: null,
             localMetrics: [],
-            hoveredButtonIndex: null,
             ...ElemDatasetMixinTypes
         };
     },
@@ -212,29 +196,6 @@ export default {
                 return dimFields[0];
             }
             return icon;
-        },
-        hasButtonHoverStyle() {
-            return Boolean(this.props.buttonHoverColor || this.props.buttonHoverTextColor || this.props.buttonHoverStyle);
-        },
-        buttonHoverClasses() {
-            return this.hasButtonHoverStyle ? 'btn-hover-style' : '';
-        },
-        resetButtonStyle() {
-            const { resetButton, disabledButtonStyle, fontOptions } = this.props;
-
-            if (resetButton.styleAsInactive) {
-                return `${disabledButtonStyle};${fontOptions};${this.margin}`;
-            }
-
-            let styles = this.margin;
-            if (resetButton.backgroundColor) {
-                styles += `background-color:${resetButton.backgroundColor};`;
-            }
-            if (resetButton.textColor) {
-                styles += `color:${resetButton.textColor};`;
-            }
-            styles += fontOptions;
-            return styles;
         }
     },
     watchEditor: {
@@ -381,8 +342,7 @@ export default {
                 id: i,
                 button: button.title,
                 metric: '',
-                icon: button.icon ? `mdi-${button.icon}` : null,
-                variableValue: button.variableValue || ''
+                icon: button.icon ? `mdi-${button.icon}` : null
             }));
 
             this.selectInds = [];
@@ -591,42 +551,6 @@ export default {
             this.selectInds.forEach((selectIndex) => {
                 this.$eventTrigger(buts[selectIndex]?.eventName);
             });
-
-            // Commit variable values to store from the button's variableValue
-            this.commitVariablesToStore(buts);
-        },
-        /**
-         * Commits variable values from selected buttons to the store
-         * @param {Array} buts - buttons array
-         */
-        commitVariablesToStore(buts) {
-            const { variablesList, customVar, multiSelect } = this.props;
-            const variables = variablesList && variablesList.length > 0
-                ? variablesList
-                : [{ name: customVar || Vars.CUSTOM_VAR }];
-
-            variables.forEach(({ name }) => {
-                if (!name) {
-                    return;
-                }
-
-                if (this.selectInds.length > 0) {
-                    const selectedVariableValues = this.selectInds
-                        .map((idx) => buts[idx]?.variableValue)
-                        .filter((val) => val != null && val !== '');
-
-                    if (selectedVariableValues.length > 0) {
-                        const valueToCommit = multiSelect
-                            ? selectedVariableValues
-                            : selectedVariableValues[0];
-                        this.$storeCommit({ [name]: valueToCommit });
-                    } else {
-                        this.$storeCommit({ [name]: null });
-                    }
-                } else {
-                    this.$storeCommit({ [name]: null });
-                }
-            });
         },
         isActiveButton(button, i) {
             if (this.props.manualInput) {
@@ -751,84 +675,6 @@ export default {
         },
         getIconStyle(button, index) {
             return this.isActiveButton(button, index) ? this.activeIconStyle : this.disabledIconStyle;
-        },
-        /**
-         * Get button style including hover style when hovered
-         * @param {string} button - button label
-         * @param {number} index - button index
-         * @returns {string} - combined style string
-         */
-        getButtonStyle(button, index) {
-            const baseStyle = this.isActiveButton(button, index) ? this.activeStyle : this.disabledStyle;
-            const { buttonHoverColor, buttonHoverTextColor, buttonHoverStyle } = this.props;
-
-            if (this.hoveredButtonIndex === index) {
-                let hoverStyles = '';
-                if (buttonHoverColor) {
-                    hoverStyles += `background-color:${buttonHoverColor};`;
-                }
-                if (buttonHoverTextColor) {
-                    hoverStyles += `color:${buttonHoverTextColor};`;
-                }
-                if (buttonHoverStyle) {
-                    hoverStyles += buttonHoverStyle;
-                }
-                if (hoverStyles) {
-                    return `${baseStyle};${hoverStyles}`;
-                }
-            }
-
-            return baseStyle;
-        },
-        /**
-         * Handle button mouse enter
-         * @param {number} index - button index
-         */
-        onButtonMouseEnter(index) {
-            this.hoveredButtonIndex = index;
-        },
-        /**
-         * Handle button mouse leave
-         */
-        onButtonMouseLeave() {
-            this.hoveredButtonIndex = null;
-        },
-        /**
-         * Reset button click handler - sets all variables to null
-         */
-        onResetButtonClick() {
-            const { variablesList, customVar } = this.props;
-            const variables = variablesList && variablesList.length > 0
-                ? variablesList
-                : [{ name: customVar || Vars.CUSTOM_VAR }];
-
-            // Reset all manually configured variables
-            const stateToCommit = {};
-            variables.forEach(({ name }) => {
-                if (name) {
-                    stateToCommit[name] = null;
-                }
-            });
-
-            // Reset all dimension variables from the dataset
-            if (this.dimensions && this.dimensions.length > 0) {
-                this.dimensions.forEach((dimension) => {
-                    stateToCommit[dimension] = null;
-                });
-            }
-
-            // Commit all resets
-            if (Object.keys(stateToCommit).length > 0) {
-                this.$storeCommit(stateToCommit);
-            }
-
-            // Clear local selection state
-            this.activeSelects = [];
-            this.selectInds = [];
-            this.activeMetrics = [];
-
-            // Trigger empty filter event
-            this.$eventTrigger(Events.IS_EMPTY_FILTER);
         }
     }
 };

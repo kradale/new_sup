@@ -12,9 +12,6 @@
     white-space: inherit;
     word-break: break-word;
 }
-.btn-hover-style:hover {
-    background-color: var(--w-button-hover-color) !important;
-}
 
 .image {
     composes: widget-wrapper;
@@ -26,9 +23,6 @@
     &__btn.hover,
     &__btn:hover {
         background-color: var(--color-primary);
-    }
-    &__btn.btn-hover-style:hover {
-        background-color: var(--w-button-hover-color) !important;
     }
 
     &__btn-content {
@@ -46,9 +40,6 @@
         align-items: center;
         justify-content: center;
     }
-    &__btn.btn-hover-style:hover {
-        background-color: var(--w-button-hover-color) !important;
-    }
 }
 
 .else {
@@ -57,8 +48,5 @@
 
     &__btn {
         composes: d-flex btn btn-primary btn-small from global;
-    }
-    &__btn.btn-hover-style:hover {
-        background-color: var(--w-button-hover-color) !important;
     }
 }
