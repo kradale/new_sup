@@ -34,6 +34,33 @@
             <ui-textarea prop="fontOptions">{{ '' }}</ui-textarea>
         </div>
 
+        <ui-has-panel>
+            <div class="form-label form-label-small d-flex flex-v-center">
+                Настройки наведения
+            </div>
+            <template #panel>
+                <ui-panel :groups="[{ name: 'Настройки наведения', slot: 'buttonHover' }]">
+                    <template #buttonHover>
+                        <ui-container>
+                            <ui-input-cp v-model="props.buttonHoverColor" @change="propChanged('buttonHoverColor')">
+                                Цвет кнопки
+                            </ui-input-cp>
+                            <ui-input-cp v-model="props.buttonHoverTextColor" @change="propChanged('buttonHoverTextColor')">
+                                Цвет текста
+                            </ui-input-cp>
+                            <div class="form-label form-label-small">Стиль наведения (CSS)</div>
+                            <ui-textarea
+                                v-model="props.buttonHoverStyle"
+                                placeholder="border-bottom, box-shadow"
+                                @change="propChanged('buttonHoverStyle')">
+                                {{ '' }}
+                            </ui-textarea>
+                        </ui-container>
+                    </template>
+                </ui-panel>
+            </template>
+        </ui-has-panel>
+
         <ui-switch prop="breakWords">Переносить длинные названия</ui-switch>
 
         <ui-input-units
@@ -177,6 +204,9 @@
                                             <ui-input v-model="but.icon" @change="propChanged('buttonsArray')">
                                                 Иконка
                                             </ui-input>
+                                            <ui-input v-model="but.variableValue" @change="propChanged('buttonsArray')">
+                                                Значение переменной
+                                            </ui-input>
                                         </ui-container>
                                     </div>
                                     <div class="col col-auto col-vmid">
@@ -284,6 +314,40 @@
         </ui-switch>
 
         <ui-has-panel>
+            <ui-switch v-model="props.resetButton.enable" @change="propChanged('resetButton')">
+                Кнопка сброса
+            </ui-switch>
+            <template #panel>
+                <ui-panel :groups="[{ name: 'Настройки кнопки сброса', slot: 'resetButton' }]">
+                    <template #resetButton>
+                        <ui-container>
+                            <ui-checkbox
+                                v-model="props.resetButton.styleAsInactive"
+                                @change="propChanged('resetButton')">
+                                Стиль как у неактивной кнопки
+                            </ui-checkbox>
+                            <ui-input
+                                v-model="props.resetButton.text"
+                                @change="propChanged('resetButton')">
+                                Текст кнопки
+                            </ui-input>
+                            <ui-input-cp
+                                v-model="props.resetButton.backgroundColor"
+                                @change="propChanged('resetButton')">
+                                Цвет кнопки
+                            </ui-input-cp>
+                            <ui-input-cp
+                                v-model="props.resetButton.textColor"
+                                @change="propChanged('resetButton')">
+                                Цвет текста
+                            </ui-input-cp>
+                        </ui-container>
+                    </template>
+                </ui-panel>
+            </template>
+        </ui-has-panel>
+
+        <ui-has-panel>
             <ui-label label-size="small">Ссылка</ui-label>
             <template #panel>
                 <ui-panel :groups="[{ name: 'Настройки ссылки', slot: 'default' }]">
@@ -307,6 +371,35 @@
                 </ui-panel>
             </template>
         </ui-has-panel>
+
+        <ui-collapse>
+            <template #header>Переменные</template>
+            <ui-container>
+                <div v-for="(variable, idx) in variablesList" :key="idx">
+                    <div class="row row-collapse">
+                        <div class="col">
+                            <ui-input v-model="variable.name" @change="onVariableChange">
+                                Имя переменной
+                            </ui-input>
+                        </div>
+                        <div class="col col-auto col-vbot">
+                            <ui-button
+                                type="ghost"
+                                inline
+                                icon
+                                :disabled="variablesList.length <= 1"
+                                @click="deleteVariable(idx)">
+                                <i class="mdi mdi-delete"></i>
+                            </ui-button>
+                        </div>
+                    </div>
+                </div>
+                <ui-button @click="addVariable">Добавить</ui-button>
+                <div class="form-label form-label-xsmall mar-top-3">
+                    Значения переменных берутся из поля "Значение переменной" ручных кнопок
+                </div>
+            </ui-container>
+        </ui-collapse>
     </ui-container>
 </template>
 <script>
@@ -386,11 +479,24 @@ export default {
         verticalMargin() {
             const { marginBetweenRows, marginBetweenRowsUnit } = this.props;
             return `${marginBetweenRows}${marginBetweenRowsUnit}`;
+        },
+        variablesList: {
+            get() {
+                return this.props.variablesList || [{ name: this.props.customVar || 'customVar' }];
+            },
+            set(val) {
+                this.props.variablesList = val;
+                // Also update customVar to be the first variable for backward compatibility
+                if (val.length > 0) {
+                    this.props.customVar = val[0].name;
+                }
+                this.propChanged(['variablesList', 'customVar']);
+            }
         }
     },
     methods: {
         addButton() {
-            this.buttonsArray.push({ title: '', eventName: '', url: '', icon: '' });
+            this.buttonsArray.push({ title: '', eventName: '', url: '', icon: '', variableValue: '' });
             this.propChanged('buttonsArray');
         },
         duplicateButton(i) {
@@ -431,6 +537,20 @@ export default {
                 this.props.marginBetweenRowsUnit = unit;
             }
             this.propChanged(['marginBetweenRows', 'marginBetweenRowsUnit']);
+        },
+        addVariable() {
+            const currentList = this.variablesList;
+            currentList.push({ name: '' });
+            this.variablesList = currentList;
+        },
+        deleteVariable(idx) {
+            const currentList = this.variablesList;
+            currentList.splice(idx, 1);
+            this.variablesList = currentList;
+        },
+        onVariableChange() {
+            // Trigger update by re-assigning the list
+            this.variablesList = [...this.variablesList];
         },
         ...PanelDatasetMixinTypes
     }
