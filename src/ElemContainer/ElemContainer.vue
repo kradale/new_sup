@@ -74,24 +74,25 @@ export default {
     },
     computed: {
         currentIcon() {
-            const expandIcon = this.props.expandIcon || 'chevron-up';
-            const collapseIcon = this.props.collapseIcon || 'chevron-down';
-            const iconName = this.isCollapsed ? collapseIcon : expandIcon;
+            const { expandIcon, collapseIcon } = this.props;
+            const iconName = this.isCollapsed 
+                ? (collapseIcon || 'chevron-down') 
+                : (expandIcon || 'chevron-up');
             return `mdi-${iconName}`;
         },
         iconStyle() {
-            const style = {};
-            if (this.props.iconColor) {
-                style.color = this.props.iconColor;
-            }
+            const { iconColor, iconSize } = this.props;
             const defaultSize = 18;
-            const iconSizeObj = this.props.iconSize || { size: defaultSize, unit: 'px' };
+            const iconSizeObj = iconSize || { size: defaultSize, unit: 'px' };
             const size = iconSizeObj.size > 0 ? iconSizeObj.size : defaultSize;
-            style.fontSize = `${size}${iconSizeObj.unit}`;
-            return style;
+            
+            return {
+                ...(iconColor && { color: iconColor }),
+                fontSize: `${size}${iconSizeObj.unit}`
+            };
         }
     },
-    watch: {
+    watchEditor: {
         'props.expandedByDefault': {
             handler() {
                 this.updateCollapsedState();
@@ -106,11 +107,9 @@ export default {
     },
     methods: {
         updateCollapsedState() {
-            if (this.props.expandedByDefault) {
-                this.isCollapsed = this.props.defaultExpandBehavior === 'collapsed';
-            } else {
-                this.isCollapsed = true;
-            }
+            this.isCollapsed = this.props.expandedByDefault 
+                ? this.props.defaultExpandBehavior === 'collapsed' 
+                : true;
         },
         isChildAllowed(type) {
             return type != 'ElemCol';

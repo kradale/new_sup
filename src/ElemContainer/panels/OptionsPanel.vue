@@ -8,7 +8,7 @@
             <template v-if="props.expandedByDefault">
                 <ui-select
                     prop="defaultExpandBehavior"
-                    :options="$options.static.expandBehaviorOptions"
+                    :options="static.expandBehaviorOptions"
                     @change="handleBehaviorChange">
                     Поведение по умолчанию
                 </ui-select>
@@ -34,7 +34,7 @@
                                         col-size="6-12"
                                         min="8"
                                         max="64"
-                                        :units="$options.static.iconSizeUnits"
+                                        :units="static.iconSizeUnits"
                                         v-model="iconSizeString"
                                         @change="saveIconSize">
                                         Размер иконки
